@@ -1,0 +1,222 @@
+﻿<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luxury Auto Installment Calculator</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #0a0a0a;
+            color: #f2f2f2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .calculator-card {
+            background: linear-gradient(145deg, #1c1c1c, #262626);
+            padding: 35px 30px;
+            border-radius: 16px;
+            box-shadow: 0 15px 35px rgba(220, 20, 60, 0.15), 0 5px 15px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 420px;
+            border: 1px solid #333;
+        }
+        .calculator-card h2 {
+            text-align: center;
+            color: #ff3333;
+            margin-top: 0;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-size: 22px;
+            font-weight: 600;
+        }
+        .form-group {
+            margin-bottom: 18px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #b3b3b3;
+            font-size: 14px;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 14px;
+            background-color: #121212;
+            border: 1px solid #444;
+            border-radius: 8px;
+            font-size: 16px;
+            color: #fff;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+        .form-group input:focus, .form-group select:focus {
+            border-color: #ff3333;
+            box-shadow: 0 0 8px rgba(255, 51, 51, 0.3);
+            outline: none;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #cc0000, #ff1a1a);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 15px;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(230, 0, 0, 0.4);
+            background: linear-gradient(135deg, #b30000, #e60000);
+        }
+        .result-box {
+            margin-top: 25px;
+            padding: 20px;
+            background-color: #141414;
+            border-left: 4px solid #ff3333;
+            border-radius: 8px;
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .result-box p {
+            margin: 12px 0;
+            color: #cccccc;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .result-box span {
+            color: #fff;
+            font-weight: 500;
+            font-size: 15px;
+        }
+        .highlight {
+            font-size: 18px !important;
+            color: #ff4d4d !important;
+            border-top: 1px solid #333;
+            padding-top: 15px;
+            margin-top: 15px !important;
+            font-weight: 600;
+        }
+        .highlight span {
+            font-size: 20px !important;
+            color: #ff4d4d !important;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="calculator-card">
+    <h2>Calculator MGM2</h2>
+    
+    <div class="form-group">
+        <label for="carPrice">ราคารถ (บาท)</label>
+        <input type="number" id="carPrice" placeholder="เช่น 649900" required>
+    </div>
+
+    <div class="form-group">
+        <label for="downAmount">จำนวนเงินดาวน์ (พิมพ์ตัวเลขได้เลย)</label>
+        <input type="number" id="downAmount" placeholder="เช่น 100000" required>
+    </div>
+
+    <div class="form-group">
+        <label for="termMonths">ระยะเวลาผ่อน (งวด)</label>
+        <select id="termMonths">
+            <option value="48">48 งวด (4 ปี)</option>
+            <option value="60">60 งวด (5 ปี)</option>
+            <option value="72">72 งวด (6 ปี)</option>
+            <option value="84">84 งวด (7 ปี)</option>
+        </select>
+    </div>
+
+    <button onclick="calculateInstallment()">คำนวณค่างวด</button>
+
+    <div class="result-box" id="resultBox">
+        <p>สัดส่วนเงินดาวน์: <span id="resDownPercent">0%</span></p>
+        <p>ยอดจัดไฟแนนซ์: <span id="resFinance">0.00 บาท</span></p>
+        <p>อัตราดอกเบี้ยที่ใช้: <span id="resRate">0%</span></p>
+        <p class="highlight" style="display:flex; justify-content:space-between; align-items:center;">
+            ค่างวดต่อเดือน: <span id="resMonthlyNoVat">0.00 บาท</span>
+        </p>
+    </div>
+</div>
+
+<script>
+    const interestRates = {
+        10: { 48: 3.69, 60: 3.99, 72: 4.39, 84: 4.59 },
+        15: { 48: 3.09, 60: 3.39, 72: 3.59, 84: 4.29 },
+        20: { 48: 2.69, 60: 2.89, 72: 3.29, 84: 3.99 },
+        25: { 48: 1.99, 60: 2.69, 72: 3.09, 84: 3.69 }
+    };
+
+    function calculateInstallment() {
+        const price = parseFloat(document.getElementById('carPrice').value);
+        const downAmt = parseFloat(document.getElementById('downAmount').value);
+        const termMonths = parseInt(document.getElementById('termMonths').value);
+
+        if (isNaN(price) || price <= 0 || isNaN(downAmt) || downAmt < 0) {
+            alert("คุณชินอิจิคะ กรุณาระบุราคารถและเงินดาวน์ให้ถูกต้องด้วยนะคะ 😉");
+            return;
+        }
+
+        if (downAmt >= price) {
+            alert("เงินดาวน์ต้องน้อยกว่าราคารถสิคะคุณชินอิจิ");
+            return;
+        }
+
+        // คำนวณเปอร์เซ็นต์ดาวน์จากยอดเงินที่กรอก
+        let downPercentRaw = (downAmt / price) * 100;
+        let bracket = 0;
+
+        // จัดกลุ่มเปอร์เซ็นต์ดาวน์เพื่อดึงดอกเบี้ย
+        if (downPercentRaw >= 25) bracket = 25;
+        else if (downPercentRaw >= 20) bracket = 20;
+        else if (downPercentRaw >= 15) bracket = 15;
+        else if (downPercentRaw >= 10) bracket = 10;
+        else {
+            const minDown = price * 0.10;
+            // แสดงจุดทศนิยม 2 ตำแหน่งโดยไม่ปัดเศษทิ้ง
+            alert("ดาวน์ขั้นต่ำต้อง 10% ขึ้นไปนะคะ (ประมาณ " + minDown.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " บาทค่ะ)");
+            return;
+        }
+
+        const financeAmount = price - downAmt;
+        const ratePerYear = interestRates[bracket][termMonths];
+        const years = termMonths / 12;
+
+        const totalInterest = financeAmount * (ratePerYear / 100) * years;
+        
+        // คำนวณค่างวดต่อเดือนแบบไม่รวม VAT และไม่มีการปัดเศษ
+        const monthlyPaymentNoVat = (financeAmount + totalInterest) / termMonths;
+
+        document.getElementById('resDownPercent').innerText = downPercentRaw.toFixed(2) + "% (เข้าเกณฑ์ " + bracket + "%)";
+        document.getElementById('resFinance').innerText = financeAmount.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " บาท";
+        document.getElementById('resRate').innerText = ratePerYear + "% ต่อปี";
+        
+        // แสดงผลลัพธ์ค่างวดสุทธิ พร้อมบังคับโชว์ทศนิยม 2 ตำแหน่ง
+        document.getElementById('resMonthlyNoVat').innerText = monthlyPaymentNoVat.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " บาท/เดือน";
+        
+        document.getElementById('resultBox').style.display = 'block';
+    }
+</script>
+
+</body>
+</html>
